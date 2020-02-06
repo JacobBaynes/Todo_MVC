@@ -125,7 +125,7 @@ class View {
                     span.append(strike)
                 } else {
                     // Otherwise just display the text
-                    span.textContent = todo.textContent
+                    span.textContent = todo.text
                 }
 
                 // The todos will also have a delete button
@@ -135,7 +135,7 @@ class View {
 
                 // Append nodes to the todo list
                 this.todoList.append(li)
-            });
+            })
         }
     }
 }
