@@ -1,15 +1,28 @@
+/*
+@class Model
+
+Managaes the data of the application 
+*/
+
 class Model {
     constructor() {
     // The state of the model, an array of todo objects, prepopulated with
     // some data
-        this.todos = [
-            { id: 1, text: 'Run a marathon', complete: false },
-            { id: 2, text: 'Plant a garden', complete: false }
-        ]
+        // this.todos = [
+        //     { id: 1, text: 'Run a marathon', complete: false },
+        //     { id: 2, text: 'Plant a garden', complete: false }
+        // ]
+
+        this.todos = JSON.parse(localStorage.getItem('todos')) || []
     }
 
     bindTodoListChanged(callback) {
         this.onTodoListChanged = callback
+    }
+
+    _commit(todos) {
+        this.onTodoListChanged(todos)
+        localStorage.setItem('todos', JSON.stringify(todos))
     }
     
     addTodo(todoText) {
@@ -33,7 +46,8 @@ class Model {
     deleteTodo(id) {
         this.todos = this.todos.filter(todo => todo.id !== id)
 
-        this.onTodoListChanged(this.todos)
+        // this.onTodoListChanged(this.todos)
+        this._commit(this.todos)
     }
 
     // Flip the complete boolean on the specified todo
@@ -72,6 +86,9 @@ class View {
         
         // Append the title, form, and todo list to the app
         this.app.append(this.title, this.form, this.todoList)
+
+        this._temporaryTodoText = ''
+        this._initLocalListeners()
     }
 
     get _todoText() {
@@ -148,6 +165,15 @@ class View {
         console.log(todos)
     }
 
+    // Update temporary state
+    _initLocalListeners() {
+        this.todoList.addEventListener('input', event => {
+            if (event.target.className === 'editable') {
+                this._temporaryTodoText = event.target.innerText
+            }
+        })
+    }
+
     bindAddTodo(handler) {
         this.form.addEventListener('submit', event => {
             event.preventDefault()
@@ -165,6 +191,17 @@ class View {
                 const id = parseInt(event.target.parentElement.id)
 
                 handler(id)
+            }
+        })
+    }
+
+    bindEditTodo(handler) {
+        this.todoList.addEventListener('focusout', event => {
+            if (this._temporaryTodoText) {
+                const id = parseInt(event.target.parentElement.id)
+
+                handler(id, this._temporaryTodoText)
+                this._temporaryTodoText = ''
             }
         })
     }
@@ -191,6 +228,7 @@ class Controller {
         this.model.bindTodoListChanged(this.onTodoListChanged)
         this.view.bindAddTodo(this.handleAddTodo)
         this.view.bindDeleteTodo(this.handleDeleteTodo)
+        this.view.bindEditTodo(this.handleEditTodo)
         this.view.bindToggleTodo(this.handleToggleTodo)
         
 
