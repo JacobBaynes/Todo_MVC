@@ -7,6 +7,10 @@ class Model {
             { id: 2, text: 'Plant a garden', complete: false }
         ]
     }
+
+    bindTodoListChanged(callback) {
+        this.onTodoListChanged = callback
+    }
     
     addTodo(todoText) {
         const todo = {
@@ -28,6 +32,8 @@ class Model {
     // Filter a todo out of the array by id
     deleteTodo(id) {
         this.todos = this.todos.filter(todo => todo.id !== id)
+
+        this.onTodoListChanged(this.todos)
     }
 
     // Flip the complete boolean on the specified todo
@@ -137,7 +143,42 @@ class View {
                 this.todoList.append(li)
             })
         }
+
+        // Debugging
+        console.log(todos)
     }
+
+    bindAddTodo(handler) {
+        this.form.addEventListener('submit', event => {
+            event.preventDefault()
+
+            if (this._todoText) {
+                handler(this._todoText)
+                this._resetInput()
+            }
+        })
+    }
+
+    bindDeleteTodo(handler) {
+        this.todoList.addEventListener('click', event => {
+            if (event.target.className === 'delete') {
+                const id = parseInt(event.target.parentElement.id)
+
+                handler(id)
+            }
+        })
+    }
+
+    bindToggleTodo(handler) {
+        this.todoList.addEventListener('change', event => {
+            if (event.target.type === 'checkbox') {
+                const id = parseInt(event.target.parentElement.id)
+
+                handler(id)
+            }
+        })
+    }
+
 }
 
 // Controller class takes in Model and View classes 
@@ -145,7 +186,39 @@ class Controller {
     constructor(model, view) {
         this.model = model
         this.view = view
+
+        // Explicit this binding
+        this.model.bindTodoListChanged(this.onTodoListChanged)
+        this.view.bindAddTodo(this.handleAddTodo)
+        this.view.bindDeleteTodo(this.handleDeleteTodo)
+        this.view.bindToggleTodo(this.handleToggleTodo)
+        
+
+        // Display initial todos
+        this.onTodoListChanged(this.model.todos)
     }
+
+    onTodoListChanged = todos => {
+        this.view.displayTodos(todos)
+    }
+
+    handleAddTodo = todoText => {
+        this.model.addTodo(todoText)
+    }
+
+    handleEditTodo = (id, todoText) => {
+        this.model.editTodo(id, todoText)
+    }
+
+    handleDeleteTodo = id => {
+        this.model.deleteTodo(id)
+    }
+
+    handleToggleTodo = id => {
+        this.model.toggleTodo(id)
+    }
+
+    
 }
 
 // App is instance of Controller class
