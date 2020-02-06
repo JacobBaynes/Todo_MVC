@@ -33,6 +33,8 @@ class Model {
         }
 
         this.todos.push(todo)
+
+        this._commit(this.todos)
     }
 
     // Map through all todos, and replace the text of the todo with the specified id
@@ -40,6 +42,8 @@ class Model {
         this.todos = this.todos.map(todo =>
             todo.id === id ? { id: todo.id, text: updatedText, complete: todo.complete } : todo
         )
+
+        this._commit(this.todos)
     }
 
     // Filter a todo out of the array by id
@@ -55,6 +59,8 @@ class Model {
         this.todos = this.todos.map(todo => 
             todo.id === id ? { id: todo.id, text: todo.text, complete: !todo.complete } : todo
         )
+
+        this._commit(this.todos)
     }
 }
 
@@ -255,8 +261,6 @@ class Controller {
     handleToggleTodo = id => {
         this.model.toggleTodo(id)
     }
-
-    
 }
 
 // App is instance of Controller class
